@@ -16,28 +16,12 @@ option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 set(KALDI_NATIVE_FBANK_BUILD_PYTHON OFF CACHE BOOL "Disable Python build")
 set(KALDI_NATIVE_FBANK_BUILD_TESTS OFF CACHE BOOL "Disable Tests build")
 
-# CRT selection: controlled by cmake crate's static_crt() which sets
-# CMAKE_MSVC_RUNTIME_LIBRARY. Default /MT (static) to match whisper-rs-sys, ort-sys, etc.
-# add_compile_options propagates to all subdirectories (including kaldi-native-fbank).
+# Use /Zl to omit default library names and /FAILIFMISMATCH directives from .obj files.
+# This prevents CRT mismatch errors (LNK2038) when linked with other crates that may
+# use a different CRT (e.g., pre-built onnxruntime.lib uses /MD while whisper-rs uses /MT).
+# The final binary's CRT is determined by the consuming project, not by this library.
 if(MSVC)
-  if(CMAKE_MSVC_RUNTIME_LIBRARY MATCHES "MultiThreadedDLL" OR
-     CMAKE_MSVC_RUNTIME_LIBRARY MATCHES "MultiThreadedDebugDLL")
-    add_compile_options(
-        $<$<CONFIG:>:/MD>
-        $<$<CONFIG:Debug>:/MDd>
-        $<$<CONFIG:Release>:/MD>
-        $<$<CONFIG:RelWithDebInfo>:/MD>
-        $<$<CONFIG:MinSizeRel>:/MD>
-    )
-  else()
-    add_compile_options(
-        $<$<CONFIG:>:/MT>
-        $<$<CONFIG:Debug>:/MTd>
-        $<$<CONFIG:Release>:/MT>
-        $<$<CONFIG:RelWithDebInfo>:/MT>
-        $<$<CONFIG:MinSizeRel>:/MT>
-    )
-  endif()
+  add_compile_options(/Zl)
 endif()
 
 add_subdirectory(../knf ${CMAKE_BINARY_DIR}/knf)
