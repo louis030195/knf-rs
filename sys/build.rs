@@ -39,7 +39,13 @@ fn main() {
     let knf_dst = out_dir.join("knf");
     let knfc_src = Path::new(&manifest_dir).join("knfc");
     let knfc_dst = out_dir.join("knfc");
-    let static_crt = env::var("KNF_STATIC_CRT").map(|v| v == "1").unwrap_or(false);
+    // Auto-detect CRT linkage from Rust's target features (set by +crt-static/-crt-static).
+    // Falls back to KNF_STATIC_CRT env var, then defaults to true (static) for MSVC compat.
+    let static_crt = if let Ok(features) = env::var("CARGO_CFG_TARGET_FEATURE") {
+        features.split(',').any(|f| f.trim() == "crt-static")
+    } else {
+        env::var("KNF_STATIC_CRT").map(|v| v == "1").unwrap_or(true)
+    };
 
     let profile = if cfg!(debug_assertions) {
         "Debug"

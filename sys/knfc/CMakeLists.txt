@@ -16,13 +16,12 @@ option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 set(KALDI_NATIVE_FBANK_BUILD_PYTHON OFF CACHE BOOL "Disable Python build")
 set(KALDI_NATIVE_FBANK_BUILD_TESTS OFF CACHE BOOL "Disable Tests build")
 
-# CRT selection: default /MD (dynamic) to match ort-sys, whisper-rs-sys, etc.
-# Set KNF_STATIC_CRT=1 env var to use /MT (static) instead.
+# CRT selection: controlled by cmake crate's static_crt() which sets
+# CMAKE_MSVC_RUNTIME_LIBRARY. Default /MT (static) to match whisper-rs-sys, ort-sys, etc.
 # add_compile_options propagates to all subdirectories (including kaldi-native-fbank).
 if(MSVC)
   if(CMAKE_MSVC_RUNTIME_LIBRARY MATCHES "MultiThreadedDLL" OR
-     CMAKE_MSVC_RUNTIME_LIBRARY MATCHES "MultiThreadedDebugDLL" OR
-     NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
+     CMAKE_MSVC_RUNTIME_LIBRARY MATCHES "MultiThreadedDebugDLL")
     add_compile_options(
         $<$<CONFIG:>:/MD>
         $<$<CONFIG:Debug>:/MDd>
