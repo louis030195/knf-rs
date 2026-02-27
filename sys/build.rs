@@ -47,7 +47,13 @@ fn main() {
         env::var("KNF_STATIC_CRT").map(|v| v == "1").unwrap_or(true)
     };
 
-    let profile = if cfg!(debug_assertions) {
+    // Always build C++ in Release mode on Windows to avoid CRT mismatch.
+    // whisper-rs-sys builds with /MD (Release Dynamic), so knf-rs-sys must
+    // also use Release to avoid mixing debug CRT symbols (_CrtDbgReport,
+    // _calloc_dbg, etc.) that are unresolvable with NODEFAULTLIB exclusions.
+    let profile = if cfg!(windows) {
+        "Release"
+    } else if cfg!(debug_assertions) {
         "Debug"
     } else {
         "Release"
