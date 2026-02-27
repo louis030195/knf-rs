@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.15)
 
-# Enable CMAKE_MSVC_RUNTIME_LIBRARY support (set by cmake crate's static_crt())
+# Enable CMAKE_MSVC_RUNTIME_LIBRARY support (set by cmake crate's static_crt()).
+# CMP0091 must be NEW for CMAKE_MSVC_RUNTIME_LIBRARY to work.
+# CMAKE_POLICY_DEFAULT_CMP0091 propagates to subdirectories that call
+# cmake_minimum_required() with a version < 3.15.
 cmake_policy(SET CMP0091 NEW)
+set(CMAKE_POLICY_DEFAULT_CMP0091 NEW CACHE STRING "" FORCE)
 
 project(knfc)
 
