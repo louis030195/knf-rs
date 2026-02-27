@@ -96,8 +96,11 @@ fn main() {
     let mut config = Config::new(&knfc_dst);
 
     if cfg!(windows) {
-        config.static_crt(static_crt);
-        debug_log!("STATIC_CRT: {}", static_crt);
+        // Use dynamic CRT (/MD) to match whisper-rs-sys which also uses /MD.
+        // Rust's +crt-static only affects Rust code; C++ static libs must be
+        // consistent with each other to avoid LNK2038 RuntimeLibrary mismatch.
+        config.static_crt(false);
+        debug_log!("STATIC_CRT: false (forced to match whisper-rs-sys /MD)");
     }
 
     config

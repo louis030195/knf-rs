@@ -21,16 +21,16 @@ set(KALDI_NATIVE_FBANK_BUILD_TESTS OFF CACHE BOOL "Disable Tests build")
 # use a different CRT (e.g., pre-built onnxruntime.lib uses /MD while whisper-rs uses /MT).
 # The final binary's CRT is determined by the consuming project, not by this library.
 if(MSVC)
+  # /Zl omits default library names from .obj files, preventing LNK2038 CRT mismatch.
   add_compile_options(/Zl)
-  # Force static CRT (/MT) to match whisper-rs-sys and Rust's +crt-static.
-  # CMAKE_MSVC_RUNTIME_LIBRARY is set by the cmake crate's static_crt() but
-  # add_compile_options ensures /MT propagates to all subdirectories (kaldi-native-fbank).
+  # Use dynamic CRT (/MD) to match whisper-rs-sys which also builds with /MD.
+  # All C++ static libs in the final binary must use the same CRT.
   add_compile_options(
-      $<$<CONFIG:>:/MT>
-      $<$<CONFIG:Debug>:/MTd>
-      $<$<CONFIG:Release>:/MT>
-      $<$<CONFIG:RelWithDebInfo>:/MT>
-      $<$<CONFIG:MinSizeRel>:/MT>
+      $<$<CONFIG:>:/MD>
+      $<$<CONFIG:Debug>:/MD>
+      $<$<CONFIG:Release>:/MD>
+      $<$<CONFIG:RelWithDebInfo>:/MD>
+      $<$<CONFIG:MinSizeRel>:/MD>
   )
 endif()
 
