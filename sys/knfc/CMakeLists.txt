@@ -22,6 +22,16 @@ set(KALDI_NATIVE_FBANK_BUILD_TESTS OFF CACHE BOOL "Disable Tests build")
 # The final binary's CRT is determined by the consuming project, not by this library.
 if(MSVC)
   add_compile_options(/Zl)
+  # Force static CRT (/MT) to match whisper-rs-sys and Rust's +crt-static.
+  # CMAKE_MSVC_RUNTIME_LIBRARY is set by the cmake crate's static_crt() but
+  # add_compile_options ensures /MT propagates to all subdirectories (kaldi-native-fbank).
+  add_compile_options(
+      $<$<CONFIG:>:/MT>
+      $<$<CONFIG:Debug>:/MTd>
+      $<$<CONFIG:Release>:/MT>
+      $<$<CONFIG:RelWithDebInfo>:/MT>
+      $<$<CONFIG:MinSizeRel>:/MT>
+  )
 endif()
 
 add_subdirectory(../knf ${CMAKE_BINARY_DIR}/knf)
