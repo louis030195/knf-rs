@@ -16,9 +16,30 @@ option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 set(KALDI_NATIVE_FBANK_BUILD_PYTHON OFF CACHE BOOL "Disable Python build")
 set(KALDI_NATIVE_FBANK_BUILD_TESTS OFF CACHE BOOL "Disable Tests build")
 
-# CRT selection is handled by CMAKE_MSVC_RUNTIME_LIBRARY (passed by cmake crate).
-# Default is /MD (dynamic CRT) to match ort-sys, whisper-rs-sys, etc.
-# Set KNF_STATIC_CRT=1 env var to use /MT (static CRT) instead.
+# CRT selection: default /MD (dynamic) to match ort-sys, whisper-rs-sys, etc.
+# Set KNF_STATIC_CRT=1 env var to use /MT (static) instead.
+# add_compile_options propagates to all subdirectories (including kaldi-native-fbank).
+if(MSVC)
+  if(CMAKE_MSVC_RUNTIME_LIBRARY MATCHES "MultiThreadedDLL" OR
+     CMAKE_MSVC_RUNTIME_LIBRARY MATCHES "MultiThreadedDebugDLL" OR
+     NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
+    add_compile_options(
+        $<$<CONFIG:>:/MD>
+        $<$<CONFIG:Debug>:/MDd>
+        $<$<CONFIG:Release>:/MD>
+        $<$<CONFIG:RelWithDebInfo>:/MD>
+        $<$<CONFIG:MinSizeRel>:/MD>
+    )
+  else()
+    add_compile_options(
+        $<$<CONFIG:>:/MT>
+        $<$<CONFIG:Debug>:/MTd>
+        $<$<CONFIG:Release>:/MT>
+        $<$<CONFIG:RelWithDebInfo>:/MT>
+        $<$<CONFIG:MinSizeRel>:/MT>
+    )
+  endif()
+endif()
 
 add_subdirectory(../knf ${CMAKE_BINARY_DIR}/knf)
 
